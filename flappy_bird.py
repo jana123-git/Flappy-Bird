@@ -12,13 +12,16 @@ if game_name == 'Flappy Bird':
 
     screen = pg.display.set_mode((screen_width, 560))
     pg.display.set_caption(' Flappy Bird ')
-    pg.display.set_icon(pg.image.load('bird.png').convert_alpha())
+    pg.display.set_icon(pg.image.load('bird1.png').convert_alpha())
 
     background = pg.image.load('background.png').convert()
-    player = pg.image.load('bird.png').convert_alpha()
-    player1 = pg.transform.rotate(pg.image.load('falling_bird.png').convert_alpha(), -90)
+    bird1 = pg.image.load('bird1.png').convert_alpha()
+    bird2 = pg.image.load('bird2.png').convert_alpha()
+    bird3 = pg.image.load('bird3.png').convert_alpha()
+    bird = [bird1, bird1,  bird2, bird2, bird3, bird3]
+    fall_bird = pg.transform.rotate(pg.image.load('falling_bird.png').convert_alpha(), -90)
     pipe = pg.image.load('pipe.png').convert_alpha()
-    invert_pipe = pg.transform.rotate(pg.image.load('pipe.png').convert_alpha() , 180)
+    invert_pipe = pg.transform.flip(pipe, False, True)
     ground = pg.image.load('base.png').convert()
     message = pg.image.load('message.png').convert_alpha()
 
@@ -43,7 +46,7 @@ if game_name == 'Flappy Bird':
         messagey = (screen_height - message.get_height())/2 
 
         PLAYERX = int(screen_width/3)
-        PLAYERY = int((screen_height - player.get_height())/2)
+        PLAYERY = int((screen_height - bird[0].get_height())/2)
 
         while True:
             for event in pg.event.get():
@@ -61,14 +64,14 @@ if game_name == 'Flappy Bird':
             screen.blit(background, [-5, 0])
             screen.blit(ground, [GROUNDX, GROUNDY])
             screen.blit(message, [messagex , messagey])
-            screen.blit(player, [PLAYERX, PLAYERY])
+            screen.blit(bird[0], [PLAYERX, PLAYERY])
         
             pg.display.update()
             clock.tick(30)
 
-    def game(player):
+    def game(bird):
         PLAYERX = int(screen_width/3)
-        PLAYERY = int((screen_height - player.get_height())/2) 
+        PLAYERY = int((screen_height - bird[0].get_height())/2) 
 
         SCORE = 0
 
@@ -108,6 +111,8 @@ if game_name == 'Flappy Bird':
         playerAcc = 1
 
         swoosh.play()
+
+        i = 0
     
         while True:
             for event in pg.event.get():
@@ -162,7 +167,7 @@ if game_name == 'Flappy Bird':
                 hit.play()
                 break 
                     
-            PlayerMidpos = PLAYERX + player.get_width()/2
+            PlayerMidpos = PLAYERX + bird[0].get_width()/2
             for u_pipe in u_pipes:
                 pipeMidPos = u_pipe['x'] + pipe.get_width()/2
                 if pipeMidPos<= PlayerMidpos < pipeMidPos +4:
@@ -177,7 +182,7 @@ if game_name == 'Flappy Bird':
             for l_pipe in l_pipes:
                 screen.blit(pipe, [l_pipe['x'], l_pipe['y']] )
             
-            screen.blit(player, [PLAYERX, PLAYERY])
+            screen.blit(bird[i], [PLAYERX, PLAYERY])
             for base in bases:
                 screen.blit(ground, [base['x'], base['y']-5])
             
@@ -189,10 +194,11 @@ if game_name == 'Flappy Bird':
             with open("score.txt", 'w') as f:
                 f.write(str(highscore))
 
+            i += 1
+            if i > 5:
+                i = 0
             pg.display.update()
             clock.tick(30)
-
-        player = player1
 
         die.play()
 
@@ -211,8 +217,8 @@ if game_name == 'Flappy Bird':
             
             playerVelY = 5
             
-            if PLAYERY >= GROUNDY - player.get_height():
-                return
+            if PLAYERY >= GROUNDY - bird[0].get_height():
+                return SCORE
             
             PLAYERY += playerVelY
 
@@ -224,7 +230,7 @@ if game_name == 'Flappy Bird':
             for l_pipe in l_pipes:
                 screen.blit(pipe, [l_pipe['x'], l_pipe['y']] )
             
-            screen.blit(player, [PLAYERX, PLAYERY])
+            screen.blit(fall_bird, [PLAYERX, PLAYERY])
             for base in bases:
                 screen.blit(ground, [base['x'], base['y']-5])
 
@@ -232,6 +238,8 @@ if game_name == 'Flappy Bird':
             clock.tick(30)
 
     def game_Over():
+        score = game(bird)
+        
         while True:
             for event in pg.event.get():
                 if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
@@ -248,15 +256,17 @@ if game_name == 'Flappy Bird':
             screen.blit(background, [-5, 0])
             screen.blit(ground, [GROUNDX, GROUNDY])
 
-            show_gameOver()
+            show_gameOver(score)
 
             pg.display.update() 
             clock.tick(30)
 
-    def show_gameOver():
+    def show_gameOver(score):
         font = pg.font.SysFont('Comic Sans MS', 40)
-        text = font.render(" GAME OVER ", True, (0, 0, 0))
-        screen.blit(text, [25, 250]) 
+        text1 = font.render(" GAME OVER ", True, (0, 0, 0))
+        screen.blit(text1, [25, 250]) 
+        text2 = font.render(" SCORE : "+str(score), True, (0, 0, 0))
+        screen.blit(text2, [25, 300]) 
 
     def show_score(SCORE, highscore):
         font = pg.font.SysFont('Comic Sans MS', 30)
@@ -292,15 +302,15 @@ if game_name == 'Flappy Bird':
         if PLAYERY <= 0  :
             return True 
         
-        if PLAYERY >= GROUNDY - player.get_height():
+        if PLAYERY >= GROUNDY - bird[0].get_height():
             return True
         
         for u_pipe in u_pipes :
-            if PLAYERY < (u_pipe['y'] + pipe.get_height()) and (PLAYERX + player.get_width()) > u_pipe['x'] and PLAYERX < (u_pipe['x'] + pipe.get_width()):
+            if PLAYERY < (u_pipe['y'] + pipe.get_height()) and (PLAYERX + bird[0].get_width()) > u_pipe['x'] and PLAYERX < (u_pipe['x'] + pipe.get_width()):
                 return True 
         
         for l_pipe in l_pipes :
-            if (PLAYERY + player.get_height()) > l_pipe['y'] and (PLAYERX + player.get_width()) > l_pipe['x'] and PLAYERX < (l_pipe['x'] + pipe.get_width()):
+            if (PLAYERY + bird[0].get_height()) > l_pipe['y'] and (PLAYERX + bird[0].get_width()) > l_pipe['x'] and PLAYERX < (l_pipe['x'] + pipe.get_width()):
                 return True
 
     def get_highscore():
@@ -310,5 +320,4 @@ if game_name == 'Flappy Bird':
 
     welcome()
     while True:
-        game(player)
         game_Over()
