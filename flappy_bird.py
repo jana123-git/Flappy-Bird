@@ -312,7 +312,7 @@ def bird_crash(PLAYERX , PLAYERY, u_pipes, l_pipes):
             return True
 
 def get_highscore():
-    with open("score.txt", 'r') as f:
+    with open("hiscore.txt", 'r') as f:
         return f.read() 
 
 
